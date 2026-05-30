@@ -21,8 +21,10 @@ const SHADES = [
 ]
 
 const PRODUCTS = [
-  { id: 1, img: '/product-01.png', label: 'Mirror Mirror Water Tint' },
-  { id: 2, img: '/product-02.png', label: 'Mirror Mirror Water Tint' },
+  { id: 1, img: '/product-03.png', label: 'Mirror Mirror Water Tint' },
+  { id: 2, img: '/product-04.png', label: 'Mirror Mirror Water Tint' },
+  { id: 3, img: '/product-01.png', label: 'Mirror Mirror Water Tint' },
+  { id: 4, img: '/product-02.png', label: 'Mirror Mirror Water Tint' },
 ]
 
 export default function HomePage() {
@@ -107,24 +109,28 @@ export default function HomePage() {
           </div>
 
           {/* Product images */}
-          <div className="relative flex justify-center items-end gap-4 animate-fade-in z-10 min-h-[320px]">
-            {PRODUCTS.map((p, i) => (
-              <div
-                key={p.id}
-                className={`relative ${i === 0 ? 'w-40 md:w-52 translate-y-4' : 'w-36 md:w-44 -translate-y-2'} drop-shadow-2xl`}
-              >
-                <Image
-                  src={p.img}
-                  alt={p.label}
-                  width={220}
-                  height={340}
-                  className="w-full h-auto object-contain"
-                  unoptimized
-                />
-              </div>
-            ))}
+          <div className="relative flex justify-center items-end gap-2 md:gap-3 animate-fade-in z-10 min-h-[380px]">
+            {PRODUCTS.map((p, i) => {
+              const offsets = ['translate-y-6', '-translate-y-2', 'translate-y-4', '-translate-y-4']
+              const sizes   = ['w-36 md:w-48', 'w-32 md:w-44', 'w-36 md:w-48', 'w-32 md:w-44']
+              return (
+                <div
+                  key={p.id}
+                  className={`relative ${sizes[i]} ${offsets[i]} drop-shadow-2xl`}
+                >
+                  <Image
+                    src={p.img}
+                    alt={p.label}
+                    width={240}
+                    height={380}
+                    className="w-full h-auto object-contain"
+                    unoptimized
+                  />
+                </div>
+              )
+            })}
             {/* Floating badge */}
-            <div className="absolute top-4 right-4 bg-lemon-500 text-brand-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lemon-glow">
+            <div className="absolute top-2 right-0 bg-lemon-500 text-brand-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lemon-glow">
               16 shades
             </div>
           </div>
