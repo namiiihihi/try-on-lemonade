@@ -21,16 +21,8 @@ const SHADES = [
 ]
 
 const PRODUCTS = [
-  {
-    id: 1,
-    img: 'https://product.hstatic.net/1000303351/1001070461/avatar_son-05_65f94b3018994887878e617016cfe84e_master.png',
-    label: 'Mirror Mirror Water Tint',
-  },
-  {
-    id: 2,
-    img: 'https://product.hstatic.net/1000303351/1001070461/avatar_son-06_683be112dc364a5ea94e6a7157ddcdb1_master.png',
-    label: 'Mirror Mirror Water Tint',
-  },
+  { id: 1, img: '/product-01.png', label: 'Mirror Mirror Water Tint' },
+  { id: 2, img: '/product-02.png', label: 'Mirror Mirror Water Tint' },
 ]
 
 export default function HomePage() {
