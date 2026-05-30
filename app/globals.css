@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --lemon:        #FFD600;
+    --lemon-light:  #FFF9C4;
+    --brand-black:  #111111;
+    --brand-white:  #FAFAFA;
+    --brand-coral:  #FF6B6B;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--brand-white);
+    color: var(--brand-black);
+  }
+}
+
+@layer components {
+  /* Lemonade primary CTA button */
+  .btn-lemon {
+    @apply inline-flex items-center justify-center gap-2
+           bg-lemon-500 text-brand-black font-bold
+           px-8 py-3.5 rounded-full text-sm tracking-wide uppercase
+           hover:bg-lemon-600 active:scale-95
+           transition-all duration-200 shadow-lemon-glow
+           focus:outline-none focus:ring-2 focus:ring-lemon-500 focus:ring-offset-2;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           border border-brand-black text-brand-black font-semibold
+           px-8 py-3.5 rounded-full text-sm tracking-wide uppercase
+           hover:bg-brand-black hover:text-lemon-500
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-brand-black focus:ring-offset-2;
+  }
+
+  /* Product shade circle */
+  .shade-swatch {
+    @apply w-10 h-10 rounded-full border-4 border-transparent
+           transition-all duration-150 hover:scale-110
+           focus:outline-none focus:ring-2 focus:ring-lemon-500 focus:ring-offset-1;
+  }
+
+  .shade-swatch[aria-pressed="true"] {
+    @apply border-lemon-500 scale-110 shadow-lemon-glow;
+  }
+
+  /* Card */
+  .brand-card {
+    @apply bg-white rounded-3xl shadow-brand-card p-6;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: #f1f1f1; }
+::-webkit-scrollbar-thumb  { background: #FFD600; border-radius: 99px; }

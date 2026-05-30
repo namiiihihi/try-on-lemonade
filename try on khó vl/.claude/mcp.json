@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--read-only"],
+      "description": "Supabase DB: query tables, run migrations, monitor logs",
+      "useCases": [
+        "Query try_on_events for analytics",
+        "Manage products (shades) table",
+        "Run SQL migrations in supabase/migrations/",
+        "Monitor Supabase logs and performance advisors"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "vercel": {
+      "command": "npx",
+      "args": ["-y", "@vercel/mcp-adapter@latest"],
+      "description": "Vercel deployments: deploy, check build logs, manage env vars",
+      "useCases": [
+        "Deploy to preview/production",
+        "Check build and runtime logs",
+        "Manage environment variables",
+        "Monitor Edge Network performance"
+      ],
+      "env": {
+        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "description": "Browser automation for E2E testing and AR flow verification",
+      "useCases": [
+        "Run cross-browser Playwright tests",
+        "Take screenshots of AR rendering",
+        "Test camera permission flows",
+        "Verify mobile responsive layout"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github@latest"],
+      "description": "GitHub: manage PRs, issues, code review",
+      "useCases": [
+        "Create PRs with description and checklist",
+        "Review code changes before merge",
+        "Track issues for bugs and features",
+        "Manage sprint milestones"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "model": "claude-sonnet-4-6",
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx *)",
+      "Bash(git *)",
+      "Bash(supabase *)",
+      "Bash(vercel *)",
+      "Bash(npx playwright *)",
+      "Read(**)",
+      "Write(app/**)",
+      "Write(lib/**)",
+      "Write(tests/**)",
+      "Write(supabase/migrations/**)",
+      "Write(.claude/**)",
+      "Edit(app/**)",
+      "Edit(lib/**)",
+      "Edit(tests/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(curl * | bash)",
+      "Write(.env*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "node .claude/hooks/pre-bash.js" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{ "type": "command", "command": "node .claude/hooks/post-write.js" }]
+      }
+    ]
+  },
+  "env": {
+    "PROJECT": "try-on-lemonteen",
+    "STACK": "nextjs-typescript-supabase-vercel"
+  }
+}
