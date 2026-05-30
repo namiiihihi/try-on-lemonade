@@ -28,6 +28,16 @@ module.exports = {
           berry:  '#8E44AD',
           rose:   '#C0392B',
         },
+        sky: {
+          50:  '#EFF8FF',
+          100: '#DBEFFE',
+          200: '#BAE0FD',
+          300: '#7CC8FB',
+          400: '#38ABF5',
+          500: '#0E90E1',
+          600: '#0272BF',
+          700: '#035B9A',
+        },
       },
       fontFamily: {
         sans:    ['var(--font-be-vietnam)', 'Be Vietnam Pro', 'system-ui', 'sans-serif'],
