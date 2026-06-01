@@ -16,6 +16,7 @@ import CaptureButton from './CaptureButton'
 import ShareButton from './ShareButton'
 import AddToCartButton from './AddToCartButton'
 import UploadFallback from './UploadFallback'
+import PhotoPreviewModal from './PhotoPreviewModal'
 
 const CAMERA_ERR_KEYS = ['camera', 'permission', 'denied', 'notallowed', 'notfound']
 type Stage = 'camera' | 'model' | 'ready' | 'error'
@@ -40,6 +41,7 @@ export default function FaceDetector() {
   const [skinAnalysis, setSkinAnalysis] = useState<SkinAnalysis | null>(null)
   const [allShades, setAllShades]     = useState<Product[]>([])
   const [debug, setDebug]             = useState({ results: 0, face: false, errMsg: '' })
+  const [previewUrl, setPreviewUrl]   = useState<string | null>(null)
 
   const [vpSize, setVpSize] = useState(() => ({
     w: typeof window !== 'undefined' ? window.innerWidth  : 640,
@@ -277,12 +279,18 @@ export default function FaceDetector() {
 
               {/* Capture + share compact */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <CaptureButton canvasRef={canvasRef} productId={selectedProduct?.id ?? null} compact />
+                <CaptureButton
+                  canvasRef={canvasRef}
+                  productId={selectedProduct?.id ?? null}
+                  compact
+                  onPreview={setPreviewUrl}
+                />
                 <ShareButton
                   canvasRef={canvasRef}
                   productName={selectedProduct?.name ?? 'Lemonade'}
                   productId={selectedProduct?.id ?? null}
                   compact
+                  onPreview={setPreviewUrl}
                 />
               </div>
             </div>
@@ -310,6 +318,16 @@ export default function FaceDetector() {
             <AddToCartButton product={selectedProduct} />
           </div>
         </div>
+      )}
+
+      {/* Photo preview modal */}
+      {previewUrl && (
+        <PhotoPreviewModal
+          dataUrl={previewUrl}
+          productName={selectedProduct?.name ?? 'Mirror Mirror Water Tint'}
+          productId={selectedProduct?.id ?? null}
+          onClose={() => setPreviewUrl(null)}
+        />
       )}
 
     </div>
