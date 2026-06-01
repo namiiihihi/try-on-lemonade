@@ -272,24 +272,30 @@ export function analyzeSkinTone(
   }
 }
 
-// ── Lemonade recommendation chart ────────────────────────────────────────────
-// Source: "Bảng Màu Đa Dạng" (avatar_son-05) + product research images
-export const LEMONADE_RECOMMENDATIONS: Record<SkinTone, Record<LipColorTone, string[]>> = {
-  light: {
-    cam:  ['01. Pure Sunshine', '16. Left No Crumbs', '14. Me Time', '02. Iconic Coral'],
-    do:   ['11. Morning Glow', '04. Baby Rosy', '01. Your Crush', '03. My Own Nude'],
-    hong: ['15. Gossiping', '12. Payday', '13. On The Date', '05. No Cap'],
-  },
-  medium: {
-    cam:  ['11. Morning Glow', '02. Iconic Coral', '14. Me Time', '01. Your Crush'],
-    do:   ['04. Baby Rosy', '01. Your Crush', '03. My Own Nude', '12. Payday'],
-    hong: ['05. No Cap', '15. Gossiping', '12. Payday', '13. On The Date'],
-  },
-  dark: {
-    cam:  ['05. Sepia Amber', '03. Poinsettia Cranberry', '04. Cinnamon Apple'],
-    do:   ['02. Rose Dew', '03. Poinsettia Cranberry', '04. Cinnamon Apple'],
-    hong: ['04. Cinnamon Apple', '02. Rose Dew', '05. Sepia Amber'],
-  },
+// ── Lemonade recommendation chart — keyed by 12 personal colour sub-types ────
+// Warm tones  → cam/coral/brick shades
+// Cool tones  → pink/berry/rose shades (tông lạnh)
+// Source: personal colour research images + Lemonade Mirror Mirror Water Tint palette
+export const LEMONADE_RECOMMENDATIONS: Record<PersonalColorSub, string[]> = {
+  // ── Spring (tông ấm, tươi sáng) ──────────────────────────────────────────
+  warm_spring:  ['Pure Sunshine', 'Iconic Coral', 'Me Time', 'Left No Crumbs'],
+  light_spring: ['Pure Sunshine', 'Baby Rosy', 'Me Time', 'On The Date'],
+  clear_spring: ['Iconic Coral', 'Your Crush', 'Morning Glow', 'Pure Sunshine'],
+
+  // ── Summer (tông lạnh, nhẹ nhàng) ────────────────────────────────────────
+  cool_summer:  ['Gossiping', 'No Cap', 'My Own Nude', 'Baby Rosy'],
+  soft_summer:  ['My Own Nude', 'Gossiping', 'Payday', 'No Cap'],
+  light_summer: ['Gossiping', 'Baby Rosy', 'On The Date', 'My Own Nude'],
+
+  // ── Autumn (tông ấm, đậm/trầm) ───────────────────────────────────────────
+  soft_autumn:  ['Sepia Amber', 'My Own Nude', 'Payday', 'Me Time'],
+  deep_autumn:  ['Poinsettia Cranberry', 'Cinnamon Apple', 'Rose Dew', 'Sepia Amber'],
+  warm_autumn:  ['Sepia Amber', 'Iconic Coral', 'Cinnamon Apple', 'Morning Glow'],
+
+  // ── Winter (tông lạnh, sắc nét) ──────────────────────────────────────────
+  deep_winter:  ['Rose Dew', 'Poinsettia Cranberry', 'Your Crush', 'Cinnamon Apple'],
+  clear_winter: ['Your Crush', 'Rose Dew', 'No Cap', 'Gossiping'],
+  cool_winter:  ['Your Crush', 'No Cap', 'Rose Dew', 'Gossiping'],
 }
 
 // ── UI labels ─────────────────────────────────────────────────────────────────
