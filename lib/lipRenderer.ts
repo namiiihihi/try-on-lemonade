@@ -35,7 +35,6 @@ export function mirrorLandmarks(lm: LipLandmarks, cW: number, cH: number, p: Cov
   }
 }
 
-// Smooth bezier path through points (midpoint technique — no closePath)
 function drawSmoothLine(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[]) {
   if (pts.length === 0) return
   ctx.moveTo(pts[0].x, pts[0].y)
@@ -47,6 +46,31 @@ function drawSmoothLine(ctx: CanvasRenderingContext2D, pts: { x: number; y: numb
   ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y)
 }
 
+function hexToRgb(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ]
+}
+
+function buildLipClip(
+  ctx: CanvasRenderingContext2D,
+  ouUpper: { x: number; y: number }[],
+  ouLower: { x: number; y: number }[],
+  inUpper: { x: number; y: number }[],
+  inLower: { x: number; y: number }[],
+) {
+  ctx.beginPath()
+  drawSmoothLine(ctx, ouUpper)
+  drawSmoothLine(ctx, ouLower)
+  ctx.closePath()
+  ctx.moveTo(inUpper[0]?.x ?? 0, inUpper[0]?.y ?? 0)
+  drawSmoothLine(ctx, inUpper)
+  drawSmoothLine(ctx, inLower)
+  ctx.closePath()
+}
+
 export function renderLipColor(
   ctx: CanvasRenderingContext2D,
   lm: LipLandmarks,
@@ -56,75 +80,70 @@ export function renderLipColor(
 ): void {
   const px = (p: Landmark) => ({ x: p.x * W, y: p.y * H })
 
-  // Outer boundary: upper (left→right) + lower reversed (right→left)
   const ouUpper = lm.outerUpper.map(px)
   const ouLower = [...lm.outerLower].reverse().map(px)
-
-  // Inner boundary (mouth opening): upper (left→right) + lower reversed
   const inUpper = lm.innerUpper.map(px)
   const inLower = [...lm.innerLower].reverse().map(px)
 
+  const allPts   = [...ouUpper, ...ouLower]
+  const lipLeft  = Math.min(...allPts.map(p => p.x))
+  const lipRight = Math.max(...allPts.map(p => p.x))
+  const lipTop   = Math.min(...allPts.map(p => p.y))
+  const lipBot   = Math.max(...allPts.map(p => p.y))
+  const lipW     = lipRight - lipLeft
+  const lipH     = lipBot   - lipTop
+  const cx       = (lipLeft + lipRight) / 2
+  const cy       = (lipTop  + lipBot)   / 2
+  const pad      = 8
+
+  const [r, g, b] = hexToRgb(color.hex)
+
   ctx.save()
 
-  // ── Build compound path with evenodd fill ──────────────────────────────────
-  // Subpath 1: outer lip contour
-  ctx.beginPath()
-  drawSmoothLine(ctx, ouUpper)
-  drawSmoothLine(ctx, ouLower)
-  ctx.closePath()
+  // Clip to lip shape (outer contour minus mouth opening via evenodd)
+  buildLipClip(ctx, ouUpper, ouLower, inUpper, inLower)
+  ctx.clip('evenodd')
 
-  // Subpath 2: inner mouth opening (same beginPath — this is a NEW subpath within same path)
-  ctx.moveTo(inUpper[0]?.x ?? 0, inUpper[0]?.y ?? 0)
-  drawSmoothLine(ctx, inUpper)
-  drawSmoothLine(ctx, inLower)
-  ctx.closePath()
-  // evenodd: outer is filled, inner (mouth opening) is subtracted → only lip surface colored
-
-  // ── MLBB-style base layer: multiply for skin-tone blending ─────────────────
+  // ── Layer 1: Soft multiply base — skin-tone blending ──────────────────
+  // Blur gives the soft-brush/airbrush feathered quality
+  ctx.filter = 'blur(2.5px)'
   ctx.globalCompositeOperation = 'multiply'
-  ctx.globalAlpha = color.opacity * 0.85
+  ctx.globalAlpha = color.opacity * 0.55
   ctx.fillStyle = color.hex
-  ctx.fill('evenodd')
+  ctx.fillRect(lipLeft - pad, lipTop - pad, lipW + pad * 2, lipH + pad * 2)
 
-  // ── Saturation punch layer ─────────────────────────────────────────────────
+  // ── Layer 2: Ombre radial gradient — center dark, edges fade to 0 ─────
+  // Gives the water-tint MLBB gradient: fuller/deeper color at the center,
+  // naturally lighter toward the lip border
   ctx.globalCompositeOperation = 'source-over'
-  ctx.globalAlpha = color.opacity * 0.28
-  ctx.fillStyle = color.hex
-  ctx.fill('evenodd')
+  ctx.globalAlpha = 1
 
-  // ── Glossy highlight: separate upper-lip arch + lower-lip centre ──────────
+  // Shift ombre center slightly down — lower lip is the fullest part
+  const ombreCy = cy + lipH * 0.08
+  const ombreR  = Math.max(lipW * 0.52, lipH * 0.62)
+
+  const ombre = ctx.createRadialGradient(cx, ombreCy, 0, cx, ombreCy, ombreR)
+  ombre.addColorStop(0,    `rgba(${r},${g},${b},${(color.opacity * 0.82).toFixed(3)})`)
+  ombre.addColorStop(0.40, `rgba(${r},${g},${b},${(color.opacity * 0.58).toFixed(3)})`)
+  ombre.addColorStop(0.72, `rgba(${r},${g},${b},${(color.opacity * 0.22).toFixed(3)})`)
+  ombre.addColorStop(1,    `rgba(${r},${g},${b},0)`)
+
+  ctx.fillStyle = ombre
+  ctx.fillRect(lipLeft - pad, lipTop - pad, lipW + pad * 2, lipH + pad * 2)
+
+  // ── Layer 3: Minimal gloss — just a faint centre sheen ─────────────────
+  ctx.filter = 'none'
   if (color.finish === 'glossy' || color.finish === 'satin') {
-    const gloss   = color.finish === 'glossy' ? 0.26 : 0.12
-    const lipTop  = Math.min(...ouUpper.map(p => p.y))
-    const lipBot  = Math.max(...ouLower.map(p => p.y))
-    const lipH    = lipBot - lipTop
-    const lipLeft = Math.min(...[...ouUpper, ...ouLower].map(p => p.x))
-    const lipRight= Math.max(...[...ouUpper, ...ouLower].map(p => p.x))
-    const cx      = (lipLeft + lipRight) / 2
-
-    // Upper lip: thin highlight along the Cupid's bow arch
-    const upperCy  = lipTop + lipH * 0.22
-    const gUpper   = ctx.createRadialGradient(cx, upperCy, 0, cx, upperCy, lipH * 0.55)
-    gUpper.addColorStop(0,    `rgba(255,255,255,${gloss * 0.9})`)
-    gUpper.addColorStop(0.35, `rgba(255,255,255,${gloss * 0.3})`)
-    gUpper.addColorStop(1,    'rgba(255,255,255,0.00)')
+    const gloss = color.finish === 'glossy' ? 0.07 : 0.04
+    const loCy  = lipTop + lipH * 0.68
+    const gLow  = ctx.createRadialGradient(cx, loCy, 0, cx, loCy, lipH * 0.40)
+    gLow.addColorStop(0, `rgba(255,255,255,${gloss})`)
+    gLow.addColorStop(1, 'rgba(255,255,255,0)')
 
     ctx.globalCompositeOperation = 'source-over'
     ctx.globalAlpha = 1
-    ctx.fillStyle = gUpper
-    ctx.fill('evenodd')
-
-    // Lower lip: broader centre highlight (fullest part of lower lip)
-    const lowerCy  = lipTop + lipH * 0.72
-    const gLower   = ctx.createRadialGradient(cx, lowerCy, 0, cx, lowerCy, lipH * 0.65)
-    gLower.addColorStop(0,   `rgba(255,255,255,${gloss})`)
-    gLower.addColorStop(0.4, `rgba(255,255,255,${gloss * 0.25})`)
-    gLower.addColorStop(1,   'rgba(255,255,255,0.00)')
-
-    ctx.globalCompositeOperation = 'source-over'
-    ctx.globalAlpha = 1
-    ctx.fillStyle = gLower
-    ctx.fill('evenodd')
+    ctx.fillStyle = gLow
+    ctx.fillRect(lipLeft - pad, lipTop - pad, lipW + pad * 2, lipH + pad * 2)
   }
 
   ctx.restore()

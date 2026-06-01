@@ -9,8 +9,8 @@ import { trackEvent, getOrCreateSessionId } from '@/lib/analytics'
 type ColorPaletteProps = {
   onColorSelect:   (color: LipColor) => void
   onProductSelect?: (product: Product) => void
-  onShadesLoaded?: (shades: Product[]) => void  // expose full list for skin analysis
-  selectedId?:     string | null                // controlled from parent
+  onShadesLoaded?: (shades: Product[]) => void
+  selectedId?:     string | null
 }
 
 const IMG  = 'https://product.hstatic.net/1000303351/product'
@@ -18,7 +18,6 @@ const IMG3 = `${IMG}/swatch_ver_3`
 const BASE = 'https://www.lemonade.vn/products/son-tint-bong-khong-dinh-ben-mau-lemonade-mirror-mirror-water-tint-3'
 const url  = (variantId: number) => `${BASE}?variant=${variantId}`
 
-// Màu chính thức Mirror Mirror Water Tint — lemonade.vn (variant IDs từ product JSON)
 const FALLBACK_SHADES: Product[] = [
   { id: 'v1-01', name: '01. Pure Sunshine',        hex: '#CC7D62', opacity: 0.68, finish: 'glossy', collection: 'Mirror Mirror Water Tint', price: 169000, image_url: `${IMG}/1_8b3467529e0e4d3d94c3cdd0a0e1790f.jpg`,  store_url: url(1112574406) },
   { id: 'v1-02', name: '02. Rose Dew',             hex: '#B82040', opacity: 0.75, finish: 'glossy', collection: 'Mirror Mirror Water Tint', price: 169000, image_url: `${IMG}/2_d75eab2da5a1471c922a65cf71fb410f.jpg`,  store_url: url(1112574689) },
@@ -39,13 +38,15 @@ const FALLBACK_SHADES: Product[] = [
 ]
 
 export default function ColorPalette({ onColorSelect, onProductSelect, onShadesLoaded, selectedId: controlledId }: ColorPaletteProps) {
-  const [shades, setShades] = useState<Product[]>(FALLBACK_SHADES)
+  const [shades, setShades]       = useState<Product[]>(FALLBACK_SHADES)
   const [internalId, setInternalId] = useState<string | null>(null)
+  const [open, setOpen]           = useState(false)
 
   const activeId = controlledId !== undefined ? controlledId : internalId
+  const active   = shades.find(s => s.id === activeId)
 
   useEffect(() => {
-    onShadesLoaded?.(FALLBACK_SHADES) // send fallback immediately
+    onShadesLoaded?.(FALLBACK_SHADES)
     async function fetchShades() {
       const { data, error } = await supabase.from('products').select('*').order('name')
       if (!error && data && data.length > 0) {
@@ -59,6 +60,7 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
 
   function handleSelect(product: Product) {
     setInternalId(product.id)
+    setOpen(false)
     onColorSelect({ hex: product.hex, opacity: product.opacity, finish: product.finish })
     onProductSelect?.(product)
     void trackEvent({
@@ -69,30 +71,72 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
   }
 
   return (
-    <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
-      {shades.map((shade) => {
-        const isActive = activeId === shade.id
-        const shortName = shade.name.replace(/^\d+\.\s*/, '')
-        return (
-          <div key={shade.id} className="flex flex-col items-center gap-1 flex-shrink-0">
-            <button
-              onClick={() => handleSelect(shade)}
-              title={shade.name}
-              aria-label={shade.name}
-              aria-pressed={isActive}
-              className="shade-swatch"
-              style={{ backgroundColor: shade.hex }}
+    <div>
+      {/* Collapsed toggle bar — always visible */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 w-full py-1 focus:outline-none"
+        aria-expanded={open}
+      >
+        {/* Preview dots: active shade first, then first 7 others */}
+        <div className="flex items-center gap-1.5">
+          {active && (
+            <div
+              className="w-5 h-5 rounded-full border-2 border-white shadow-sm flex-shrink-0"
+              style={{ backgroundColor: active.hex }}
             />
-            <span
-              className={`text-[8px] leading-tight text-center w-12 line-clamp-2 select-none pointer-events-none transition-colors ${
-                isActive ? 'text-lemon-400 font-semibold' : 'text-white/50'
-              }`}
-            >
-              {shortName}
-            </span>
-          </div>
-        )
-      })}
+          )}
+          {shades
+            .filter(s => s.id !== activeId)
+            .slice(0, active ? 7 : 8)
+            .map(s => (
+              <div
+                key={s.id}
+                className="w-3.5 h-3.5 rounded-full border border-white/30 flex-shrink-0"
+                style={{ backgroundColor: s.hex }}
+              />
+            ))}
+          <span className="text-white/35 text-[10px] ml-0.5">+{Math.max(0, shades.length - 8)}</span>
+        </div>
+        <span className="ml-auto text-white/40 text-[10px] tracking-wide flex items-center gap-1">
+          Chọn màu
+          <svg
+            className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
+            fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </span>
+      </button>
+
+      {/* Expanded palette */}
+      {open && (
+        <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1 pt-2 border-t border-white/10 mt-1">
+          {shades.map((shade) => {
+            const isActive  = activeId === shade.id
+            const shortName = shade.name.replace(/^\d+\.\s*/, '')
+            return (
+              <div key={shade.id} className="flex flex-col items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => handleSelect(shade)}
+                  title={shade.name}
+                  aria-label={shade.name}
+                  aria-pressed={isActive}
+                  className="shade-swatch"
+                  style={{ backgroundColor: shade.hex }}
+                />
+                <span
+                  className={`text-[8px] leading-tight text-center w-12 line-clamp-2 select-none pointer-events-none transition-colors ${
+                    isActive ? 'text-lemon-400 font-semibold' : 'text-white/50'
+                  }`}
+                >
+                  {shortName}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
