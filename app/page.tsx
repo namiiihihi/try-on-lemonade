@@ -108,30 +108,30 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Product images — chiều cao ngang bằng text block */}
-          <div className="relative flex justify-center items-end gap-2 md:gap-4 animate-fade-in z-10 h-[420px] md:h-[520px]">
-            {PRODUCTS.map((p, i) => {
-              const offsets = ['translate-y-8', '-translate-y-4', 'translate-y-6', '-translate-y-6']
-              const sizes   = ['w-44 md:w-56', 'w-40 md:w-52', 'w-44 md:w-56', 'w-40 md:w-52']
-              return (
+          {/* Product images — khung chữ nhật 2×2, ngang bằng text block */}
+          <div className="relative animate-fade-in z-10">
+            {/* Floating badge */}
+            <div className="absolute -top-3 -right-2 z-10 bg-lemon-500 text-brand-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lemon-glow">
+              16 shades
+            </div>
+
+            {/* Khung chính */}
+            <div className="grid grid-cols-2 gap-3 rounded-3xl overflow-hidden bg-gradient-to-br from-sky-100 to-lemon-50 p-4 shadow-xl ring-1 ring-sky-200/60">
+              {PRODUCTS.map((p) => (
                 <div
                   key={p.id}
-                  className={`relative ${sizes[i]} ${offsets[i]} drop-shadow-2xl h-full flex items-end`}
+                  className="aspect-square rounded-2xl overflow-hidden bg-white/70 flex items-center justify-center shadow-sm"
                 >
                   <Image
                     src={p.img}
                     alt={p.label}
-                    width={280}
-                    height={480}
-                    className="w-full h-auto object-contain max-h-full"
+                    width={300}
+                    height={300}
+                    className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-300"
                     unoptimized
                   />
                 </div>
-              )
-            })}
-            {/* Floating badge */}
-            <div className="absolute top-0 right-0 bg-lemon-500 text-brand-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lemon-glow">
-              16 shades
+              ))}
             </div>
           </div>
         </div>
