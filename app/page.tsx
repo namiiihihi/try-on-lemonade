@@ -7,11 +7,11 @@ const SHADES = [
   { name: '03. Poinsettia Cranberry', hex: '#8E1A28' },
   { name: '04. Cinnamon Apple',       hex: '#9E3028' },
   { name: '05. Sepia Amber',          hex: '#B85F2A' },
-  { name: '01. Your Crush',           hex: '#CC2850' },
-  { name: '02. Iconic Coral',         hex: '#C85035' },
-  { name: '03. My Own Nude',          hex: '#C07858' },
-  { name: '04. Baby Rosy',            hex: '#E88A78' },
-  { name: '05. No Cap',               hex: '#CC6078' },
+  { name: '06. Your Crush',           hex: '#CC2850' },
+  { name: '07. Iconic Coral',         hex: '#C85035' },
+  { name: '08. My Own Nude',          hex: '#C07858' },
+  { name: '09. Baby Rosy',            hex: '#E88A78' },
+  { name: '10. No Cap',               hex: '#CC6078' },
   { name: '11. Morning Glow',         hex: '#E07A68' },
   { name: '12. Payday',               hex: '#D07058' },
   { name: '13. On The Date',          hex: '#E88A78' },
@@ -67,13 +67,13 @@ export default function HomePage() {
         <div className="absolute -top-20 -right-20 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 -left-16 w-72 h-72 bg-lemon-200/40 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 items-center gap-10">
+        <div className="max-w-6xl mx-auto px-4 py-10 md:py-16 grid grid-cols-1 md:grid-cols-2 items-center gap-8">
           {/* Text */}
           <div className="animate-slide-up z-10">
             <span className="inline-block bg-sky-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
               AI Try-On
             </span>
-            <h1 className="font-display text-5xl md:text-6xl font-bold leading-tight text-brand-black mb-4">
+            <h1 className="font-display text-6xl md:text-7xl font-bold leading-tight text-brand-black mb-4">
               For&nbsp;<span className="italic text-sky-500">LIPS</span>
             </h1>
             <p className="text-2xl font-semibold text-lemon-700 mb-2">Mirror Mirror Water Tint</p>
@@ -108,29 +108,29 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Product images */}
-          <div className="relative flex justify-center items-end gap-2 md:gap-3 animate-fade-in z-10 min-h-[380px]">
+          {/* Product images — chiều cao ngang bằng text block */}
+          <div className="relative flex justify-center items-end gap-2 md:gap-4 animate-fade-in z-10 h-[420px] md:h-[520px]">
             {PRODUCTS.map((p, i) => {
-              const offsets = ['translate-y-6', '-translate-y-2', 'translate-y-4', '-translate-y-4']
-              const sizes   = ['w-36 md:w-48', 'w-32 md:w-44', 'w-36 md:w-48', 'w-32 md:w-44']
+              const offsets = ['translate-y-8', '-translate-y-4', 'translate-y-6', '-translate-y-6']
+              const sizes   = ['w-44 md:w-56', 'w-40 md:w-52', 'w-44 md:w-56', 'w-40 md:w-52']
               return (
                 <div
                   key={p.id}
-                  className={`relative ${sizes[i]} ${offsets[i]} drop-shadow-2xl`}
+                  className={`relative ${sizes[i]} ${offsets[i]} drop-shadow-2xl h-full flex items-end`}
                 >
                   <Image
                     src={p.img}
                     alt={p.label}
-                    width={240}
-                    height={380}
-                    className="w-full h-auto object-contain"
+                    width={280}
+                    height={480}
+                    className="w-full h-auto object-contain max-h-full"
                     unoptimized
                   />
                 </div>
               )
             })}
             {/* Floating badge */}
-            <div className="absolute top-2 right-0 bg-lemon-500 text-brand-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lemon-glow">
+            <div className="absolute top-0 right-0 bg-lemon-500 text-brand-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lemon-glow">
               16 shades
             </div>
           </div>

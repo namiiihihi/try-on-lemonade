@@ -178,28 +178,28 @@ export default function FaceDetector() {
   const isLoading = stage === 'camera' || stage === 'model'
 
   return (
-    <div className="fixed inset-0 bg-brand-black select-none overflow-hidden">
+    <div className="fixed inset-0 bg-slate-950 select-none overflow-hidden">
 
       <video ref={videoRef} muted playsInline className="absolute w-px h-px -left-px opacity-0 pointer-events-none" />
       <canvas ref={canvasRef} width={vpSize.w} height={vpSize.h} className="absolute inset-0 touch-none" />
 
       {/* ── Loading ───────────────────────────────────────────────────── */}
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-brand-black z-20 gap-5">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-sky-950 to-slate-950 z-20 gap-5">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full border-4 border-white/10" />
+            <div className="w-16 h-16 rounded-full border-4 border-sky-800/40" />
             <div className="absolute inset-0 rounded-full border-4 border-lemon-500 border-t-transparent animate-spin" />
           </div>
           <div className="text-center">
             <p className="text-white/80 text-sm font-semibold">{stageMsg}</p>
-            {stage === 'model' && <p className="text-white/30 text-xs mt-1">Lần đầu tải ~8MB · Lần sau sẽ được cache</p>}
+            {stage === 'model' && <p className="text-sky-400/60 text-xs mt-1">Lần đầu tải ~8MB · Lần sau sẽ được cache</p>}
           </div>
         </div>
       )}
 
       {/* ── Error ─────────────────────────────────────────────────────── */}
       {stage === 'error' && error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-brand-black z-20 p-8">
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-sky-950 to-slate-950 z-20 p-8">
           <div className="brand-card text-center max-w-sm">
             <p className="text-red-400 font-semibold mb-2">Có lỗi xảy ra</p>
             <p className="text-gray-500 text-sm">{error}</p>
@@ -209,11 +209,11 @@ export default function FaceDetector() {
 
       {/* ── Debug panel ───────────────────────────────────────────────── */}
       {stage === 'ready' && (
-        <div className="absolute top-16 left-4 z-20 backdrop-blur-md bg-black/60 rounded-xl px-3 py-2 text-[10px] font-mono space-y-0.5 pointer-events-none">
-          <p className={debug.results > 0 ? 'text-green-400' : 'text-red-400'}>onResults: {debug.results}x</p>
-          <p className={debug.face ? 'text-green-400' : 'text-yellow-400'}>Face: {debug.face ? '✓ detected' : '✗ not found'}</p>
+        <div className="absolute top-16 left-4 z-20 backdrop-blur-md bg-sky-950/70 rounded-xl px-3 py-2 text-[10px] font-mono space-y-0.5 pointer-events-none border border-sky-800/30">
+          <p className={debug.results > 0 ? 'text-sky-400' : 'text-red-400'}>onResults: {debug.results}x</p>
+          <p className={debug.face ? 'text-sky-400' : 'text-lemon-400'}>Face: {debug.face ? '✓ detected' : '✗ not found'}</p>
           {skinAnalysis && (
-            <p className="text-cyan-400">
+            <p className="text-sky-300">
               L:{Math.round(skinAnalysis.labValues.L)} a:{Math.round(skinAnalysis.labValues.a)} b:{Math.round(skinAnalysis.labValues.b)}
             </p>
           )}
@@ -224,16 +224,16 @@ export default function FaceDetector() {
       {/* ── Top bar ───────────────────────────────────────────────────── */}
       {!isLoading && stage !== 'error' && (
         <header className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10">
-          <Link href="/" className="flex items-center gap-2 backdrop-blur-md bg-black/30 rounded-full px-3 py-1.5 hover:bg-black/50 transition-colors">
-            <svg className="w-4 h-4 text-white/80" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+          <Link href="/" className="flex items-center gap-2 backdrop-blur-md bg-sky-950/50 border border-sky-700/30 rounded-full px-3 py-1.5 hover:bg-sky-900/60 transition-colors">
+            <svg className="w-4 h-4 text-sky-300" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             <Image src="https://theme.hstatic.net/1000303351/1001070461/14/logo.png?v=2346" alt="LEMONADE"
               width={72} height={22} className="h-5 w-auto brightness-0 invert" unoptimized />
           </Link>
 
-          <div className={`flex items-center gap-1.5 backdrop-blur-md bg-black/30 rounded-full px-3 py-1.5 transition-colors ${faceOk ? 'text-green-400' : 'text-white/40'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${faceOk ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
+          <div className={`flex items-center gap-1.5 backdrop-blur-md border rounded-full px-3 py-1.5 transition-all ${faceOk ? 'bg-sky-500/20 border-sky-400/40 text-sky-300' : 'bg-sky-950/50 border-sky-700/30 text-white/40'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${faceOk ? 'bg-sky-400 animate-pulse' : 'bg-white/20'}`} />
             <span className="text-[10px] font-bold tracking-[0.2em] uppercase">
               {faceOk ? 'Nhận diện được' : 'Chờ khuôn mặt...'}
             </span>
@@ -244,16 +244,16 @@ export default function FaceDetector() {
       {/* ── Guide khi chưa detect ─────────────────────────────────────── */}
       {stage === 'ready' && !faceOk && (
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center z-10 pointer-events-none">
-          <div className="backdrop-blur-md bg-black/55 rounded-2xl px-6 py-3 text-center">
+          <div className="backdrop-blur-md bg-sky-950/60 border border-sky-700/30 rounded-2xl px-6 py-3 text-center">
             <p className="text-white/80 text-sm font-medium">Đưa khuôn mặt vào giữa màn hình</p>
-            <p className="text-white/40 text-xs mt-1">Cần ánh sáng đủ · Nhìn thẳng camera</p>
+            <p className="text-sky-400/70 text-xs mt-1">Cần ánh sáng đủ · Nhìn thẳng camera</p>
           </div>
         </div>
       )}
 
       {/* ── Bottom panel — tất cả controls ────────────────────────────── */}
       {stage === 'ready' && (
-        <div className="absolute bottom-0 left-0 right-0 z-10 backdrop-blur-xl bg-black/70 border-t border-white/10">
+        <div className="absolute bottom-0 left-0 right-0 z-10 backdrop-blur-xl bg-sky-950/85 border-t border-sky-700/40">
           <div className="max-w-xl mx-auto px-4 pt-3 pb-5 flex flex-col gap-2.5">
 
             {/* Row 1: Tên màu + nút capture/share */}
