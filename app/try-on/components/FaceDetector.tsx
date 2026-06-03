@@ -108,7 +108,7 @@ export default function FaceDetector() {
               const params = computeCoverParams(w, h, video.videoWidth, video.videoHeight)
 
               // Draw mirrored video with skin brightening
-              ctx.filter = 'brightness(1.07) saturate(0.88) contrast(0.95)'
+              ctx.filter = 'brightness(1.18) saturate(0.90) contrast(0.93)'
               ctx.save()
               ctx.translate(w, 0)
               ctx.scale(-1, 1)
