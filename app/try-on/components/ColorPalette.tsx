@@ -37,16 +37,11 @@ const FALLBACK_SHADES: Product[] = [
   { id: 'v3-16', name: '16. Left No Crumbs',       hex: '#D87268', opacity: 0.68, finish: 'glossy', collection: 'Mirror Mirror Water Tint', price: 169000, image_url: `${IMG3}_16_8d2e53564e704181850bdf94e77a1f80.jpg`, store_url: url(1140650066) },
 ]
 
-const DOTS_PER_PAGE = 6
-
 export default function ColorPalette({ onColorSelect, onProductSelect, onShadesLoaded, selectedId: controlledId }: ColorPaletteProps) {
-  const [shades, setShades]     = useState<Product[]>(FALLBACK_SHADES)
+  const [shades, setShades]         = useState<Product[]>(FALLBACK_SHADES)
   const [internalId, setInternalId] = useState<string | null>(null)
-  const [page, setPage]         = useState(0)
 
-  const activeId    = controlledId !== undefined ? controlledId : internalId
-  const totalPages  = Math.ceil(shades.length / DOTS_PER_PAGE)
-  const visible     = shades.slice(page * DOTS_PER_PAGE, (page + 1) * DOTS_PER_PAGE)
+  const activeId = controlledId !== undefined ? controlledId : internalId
 
   useEffect(() => {
     onShadesLoaded?.(FALLBACK_SHADES)
@@ -65,9 +60,7 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
   }, [onShadesLoaded])
 
   function handleSelect(product: Product) {
-    const idx = shades.findIndex(s => s.id === product.id)
     setInternalId(product.id)
-    setPage(Math.floor(idx / DOTS_PER_PAGE))
     onColorSelect({ hex: product.hex, opacity: product.opacity, finish: product.finish })
     onProductSelect?.(product)
     void trackEvent({
@@ -78,49 +71,31 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
   }
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Prev arrow */}
-      <button
-        onClick={() => setPage(p => Math.max(0, p - 1))}
-        aria-label="Tông màu trước"
-        className={`w-8 h-8 flex items-center justify-center text-white text-xl drop-shadow transition-opacity ${page === 0 ? 'opacity-0 pointer-events-none' : 'opacity-70 hover:opacity-100'}`}
-      >
-        ‹
-      </button>
-
-      {/* Dots */}
-      <div className="flex items-center gap-3">
-        {visible.map(shade => {
-          const isActive = activeId === shade.id
-          return (
-            <button
-              key={shade.id}
-              onClick={() => handleSelect(shade)}
-              title={shade.name}
-              aria-label={shade.name}
-              aria-pressed={isActive}
-              className="rounded-full transition-all duration-150 flex-shrink-0 active:scale-90"
-              style={{
-                width: isActive ? 48 : 42,
-                height: isActive ? 48 : 42,
-                backgroundColor: shade.hex,
-                outline: isActive ? '2.5px solid white' : '2.5px solid transparent',
-                outlineOffset: '3px',
-                boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 6px rgba(0,0,0,0.3)',
-              }}
-            />
-          )
-        })}
-      </div>
-
-      {/* Next arrow */}
-      <button
-        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-        aria-label="Tông màu tiếp theo"
-        className={`w-8 h-8 flex items-center justify-center text-white text-xl drop-shadow transition-opacity ${page >= totalPages - 1 ? 'opacity-0 pointer-events-none' : 'opacity-70 hover:opacity-100'}`}
-      >
-        ›
-      </button>
+    <div
+      className="flex items-center gap-3 overflow-x-auto px-4"
+      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+    >
+      {shades.map(shade => {
+        const isActive = activeId === shade.id
+        return (
+          <button
+            key={shade.id}
+            onClick={() => handleSelect(shade)}
+            title={shade.name}
+            aria-label={shade.name}
+            aria-pressed={isActive}
+            className="rounded-full transition-all duration-150 flex-shrink-0 active:scale-90"
+            style={{
+              width: isActive ? 48 : 42,
+              height: isActive ? 48 : 42,
+              backgroundColor: shade.hex,
+              outline: isActive ? '2.5px solid white' : '2.5px solid transparent',
+              outlineOffset: '3px',
+              boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 6px rgba(0,0,0,0.3)',
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
