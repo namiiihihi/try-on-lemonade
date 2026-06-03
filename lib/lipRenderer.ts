@@ -98,6 +98,13 @@ export function renderLipColor(
 
   const [r, g, b] = hexToRgb(color.hex)
 
+  // Dark colors render lighter & sheerer — luminance-based scale
+  // Very dark reds/cranberries (luminance ~0.1-0.3) scale down to 0.68x opacity
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  const lightness  = Math.min(1, luminance / 0.45)
+  const sheerness  = 0.68 + lightness * 0.32
+  const eff        = color.opacity * sheerness
+
   ctx.save()
 
   // Clip to lip shape (outer contour minus mouth opening via evenodd)
@@ -105,27 +112,24 @@ export function renderLipColor(
   ctx.clip('evenodd')
 
   // ── Layer 1: Soft multiply base — skin-tone blending ──────────────────
-  // Blur gives the soft-brush/airbrush feathered quality
   ctx.filter = 'blur(2.5px)'
   ctx.globalCompositeOperation = 'multiply'
-  ctx.globalAlpha = color.opacity * 0.55
+  ctx.globalAlpha = eff * 0.50
   ctx.fillStyle = color.hex
   ctx.fillRect(lipLeft - pad, lipTop - pad, lipW + pad * 2, lipH + pad * 2)
 
-  // ── Layer 2: Ombre radial gradient — center dark, edges fade to 0 ─────
-  // Gives the water-tint MLBB gradient: fuller/deeper color at the center,
-  // naturally lighter toward the lip border
+  // ── Layer 2: Ombre radial gradient — water-tint stain effect ──────────
+  // More even spread than before = more "bám môi", less centre-heavy
   ctx.globalCompositeOperation = 'source-over'
   ctx.globalAlpha = 1
 
-  // Shift ombre center slightly down — lower lip is the fullest part
   const ombreCy = cy + lipH * 0.08
   const ombreR  = Math.max(lipW * 0.52, lipH * 0.62)
 
   const ombre = ctx.createRadialGradient(cx, ombreCy, 0, cx, ombreCy, ombreR)
-  ombre.addColorStop(0,    `rgba(${r},${g},${b},${(color.opacity * 0.82).toFixed(3)})`)
-  ombre.addColorStop(0.40, `rgba(${r},${g},${b},${(color.opacity * 0.58).toFixed(3)})`)
-  ombre.addColorStop(0.72, `rgba(${r},${g},${b},${(color.opacity * 0.22).toFixed(3)})`)
+  ombre.addColorStop(0,    `rgba(${r},${g},${b},${(eff * 0.78).toFixed(3)})`)
+  ombre.addColorStop(0.42, `rgba(${r},${g},${b},${(eff * 0.56).toFixed(3)})`)
+  ombre.addColorStop(0.75, `rgba(${r},${g},${b},${(eff * 0.26).toFixed(3)})`)
   ombre.addColorStop(1,    `rgba(${r},${g},${b},0)`)
 
   ctx.fillStyle = ombre

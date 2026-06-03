@@ -8,13 +8,10 @@ import type { FaceMeshResult, LipLandmarks, Landmark } from '@/lib/mediapipe'
 import { renderLipColor, computeCoverParams, mirrorLandmarks } from '@/lib/lipRenderer'
 import type { LipColor } from '@/lib/lipRenderer'
 import type { Product } from '@/lib/supabase'
-import { analyzeSkinTone } from '@/lib/skinAnalysis'
-import type { SkinAnalysis } from '@/lib/skinAnalysis'
+
 import ColorPalette from './ColorPalette'
-import ColorRecommendation from './ColorRecommendation'
 import CaptureButton from './CaptureButton'
 import ShareButton from './ShareButton'
-import AddToCartButton from './AddToCartButton'
 import UploadFallback from './UploadFallback'
 import PhotoPreviewModal from './PhotoPreviewModal'
 
@@ -30,7 +27,6 @@ export default function FaceDetector() {
   const colorRef       = useRef<LipColor | null>(null)
   const allLandmarks   = useRef<Landmark[]>([])       // full 468 landmarks for skin analysis
   const sendingRef     = useRef(false)
-  const resultsCount   = useRef(0)
 
   const [stage, setStage]             = useState<Stage>('camera')
   const [stageMsg, setStageMsg]       = useState('Đang khởi động camera...')
@@ -38,9 +34,7 @@ export default function FaceDetector() {
   const [faceOk, setFaceOk]           = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedId, setSelectedId]   = useState<string | null>(null)
-  const [skinAnalysis, setSkinAnalysis] = useState<SkinAnalysis | null>(null)
   const [allShades, setAllShades]     = useState<Product[]>([])
-  const [debug, setDebug]             = useState({ results: 0, face: false, errMsg: '' })
   const [previewUrl, setPreviewUrl]   = useState<string | null>(null)
 
   const [vpSize, setVpSize] = useState(() => ({
@@ -56,7 +50,6 @@ export default function FaceDetector() {
 
   // FaceMesh results — store full landmark array for skin analysis
   const handleResults = useCallback((results: FaceMeshResult) => {
-    resultsCount.current += 1
     sendingRef.current = false
 
     const face = results.multiFaceLandmarks?.[0]
@@ -71,7 +64,6 @@ export default function FaceDetector() {
 
     setStage(s => s === 'model' ? 'ready' : s)
     setFaceOk(detected)
-    setDebug({ results: resultsCount.current, face: detected, errMsg: '' })
   }, [])
 
   const handleColorSelect = useCallback((c: LipColor) => { colorRef.current = c }, [])
@@ -80,20 +72,6 @@ export default function FaceDetector() {
     setSelectedProduct(p)
     setSelectedId(p.id)
   }, [])
-
-  // Skin tone analysis — runs every 3 s when face is detected
-  useEffect(() => {
-    if (!faceOk) return
-    const run = () => {
-      const video = videoRef.current
-      if (!video || allLandmarks.current.length < 468) return
-      const result = analyzeSkinTone(video, allLandmarks.current)
-      if (result && result.confidence > 0.3) setSkinAnalysis(result)
-    }
-    run() // immediate first run
-    const id = setInterval(run, 3000)
-    return () => clearInterval(id)
-  }, [faceOk])
 
   // Camera + FaceMesh + render loop
   useEffect(() => {
@@ -129,12 +107,14 @@ export default function FaceDetector() {
               const { width: w, height: h } = canvas
               const params = computeCoverParams(w, h, video.videoWidth, video.videoHeight)
 
-              // Draw mirrored video
+              // Draw mirrored video with skin brightening
+              ctx.filter = 'brightness(1.07) saturate(0.88) contrast(0.95)'
               ctx.save()
               ctx.translate(w, 0)
               ctx.scale(-1, 1)
               ctx.drawImage(video, params.offsetX, params.offsetY, params.drawW, params.drawH)
               ctx.restore()
+              ctx.filter = 'none'
 
               // Lip overlay
               const lm  = landRef.current
@@ -146,9 +126,8 @@ export default function FaceDetector() {
               // FaceMesh — one frame at a time
               if (!sendingRef.current) {
                 sendingRef.current = true
-                mesh.send({ image: video }).catch((e: unknown) => {
+                mesh.send({ image: video }).catch(() => {
                   sendingRef.current = false
-                  setDebug(d => ({ ...d, errMsg: e instanceof Error ? e.message : String(e) }))
                 })
               }
             }
@@ -179,29 +158,31 @@ export default function FaceDetector() {
 
   const isLoading = stage === 'camera' || stage === 'model'
 
+  const storeUrl = selectedProduct?.store_url ?? 'https://www.lemonade.vn/products/son-tint-bong-khong-dinh-ben-mau-lemonade-mirror-mirror-water-tint-3'
+
   return (
-    <div className="fixed inset-0 bg-slate-950 select-none overflow-hidden">
+    <div className="fixed inset-0 bg-black select-none overflow-hidden">
 
       <video ref={videoRef} muted playsInline className="absolute w-px h-px -left-px opacity-0 pointer-events-none" />
       <canvas ref={canvasRef} width={vpSize.w} height={vpSize.h} className="absolute inset-0 touch-none" />
 
-      {/* ── Loading ───────────────────────────────────────────────────── */}
+      {/* Loading */}
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-sky-950 to-slate-950 z-20 gap-5">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-20 gap-5">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full border-4 border-sky-800/40" />
+            <div className="w-16 h-16 rounded-full border-4 border-white/10" />
             <div className="absolute inset-0 rounded-full border-4 border-lemon-500 border-t-transparent animate-spin" />
           </div>
           <div className="text-center">
-            <p className="text-white/80 text-sm font-semibold">{stageMsg}</p>
-            {stage === 'model' && <p className="text-sky-400/60 text-xs mt-1">Lần đầu tải ~8MB · Lần sau sẽ được cache</p>}
+            <p className="text-white/70 text-sm font-medium">{stageMsg}</p>
+            {stage === 'model' && <p className="text-white/30 text-xs mt-1">Lần đầu tải ~8MB · Lần sau sẽ được cache</p>}
           </div>
         </div>
       )}
 
-      {/* ── Error ─────────────────────────────────────────────────────── */}
+      {/* Error */}
       {stage === 'error' && error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-sky-950 to-slate-950 z-20 p-8">
+        <div className="absolute inset-0 flex items-center justify-center bg-black z-20 p-8">
           <div className="brand-card text-center max-w-sm">
             <p className="text-red-400 font-semibold mb-2">Có lỗi xảy ra</p>
             <p className="text-gray-500 text-sm">{error}</p>
@@ -209,113 +190,101 @@ export default function FaceDetector() {
         </div>
       )}
 
-      {/* ── Debug panel ───────────────────────────────────────────────── */}
-      {stage === 'ready' && (
-        <div className="absolute top-16 left-4 z-20 backdrop-blur-md bg-sky-950/70 rounded-xl px-3 py-2 text-[10px] font-mono space-y-0.5 pointer-events-none border border-sky-800/30">
-          <p className={debug.results > 0 ? 'text-sky-400' : 'text-red-400'}>onResults: {debug.results}x</p>
-          <p className={debug.face ? 'text-sky-400' : 'text-lemon-400'}>Face: {debug.face ? '✓ detected' : '✗ not found'}</p>
-          {skinAnalysis && (
-            <p className="text-sky-300">
-              L:{Math.round(skinAnalysis.labValues.L)} a:{Math.round(skinAnalysis.labValues.a)} b:{Math.round(skinAnalysis.labValues.b)}
-            </p>
-          )}
-          {debug.errMsg && <p className="text-red-400 max-w-[180px] truncate">⚠ {debug.errMsg}</p>}
-        </div>
-      )}
-
-      {/* ── Top bar ───────────────────────────────────────────────────── */}
+      {/* Top bar */}
       {!isLoading && stage !== 'error' && (
-        <header className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10">
-          <Link href="/" className="flex items-center gap-2 backdrop-blur-md bg-sky-950/50 border border-sky-700/30 rounded-full px-3 py-1.5 hover:bg-sky-900/60 transition-colors">
-            <svg className="w-4 h-4 text-sky-300" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+        <header className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-4 z-10">
+          <Link href="/" className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             <Image src="https://theme.hstatic.net/1000303351/1001070461/14/logo.png?v=2346" alt="LEMONADE"
-              width={72} height={22} className="h-5 w-auto brightness-0 invert" unoptimized />
+              width={72} height={22} className="h-5 w-auto brightness-0 invert drop-shadow" unoptimized />
           </Link>
 
-          <div className={`flex items-center gap-1.5 backdrop-blur-md border rounded-full px-3 py-1.5 transition-all ${faceOk ? 'bg-sky-500/20 border-sky-400/40 text-sky-300' : 'bg-sky-950/50 border-sky-700/30 text-white/40'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${faceOk ? 'bg-sky-400 animate-pulse' : 'bg-white/20'}`} />
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase">
-              {faceOk ? 'Nhận diện được' : 'Chờ khuôn mặt...'}
-            </span>
+          <div className="flex items-center gap-2">
+            <CaptureButton
+              canvasRef={canvasRef}
+              productId={selectedProduct?.id ?? null}
+              compact
+              onPreview={setPreviewUrl}
+            />
+            <ShareButton
+              canvasRef={canvasRef}
+              productName={selectedProduct?.name ?? 'Lemonade'}
+              productId={selectedProduct?.id ?? null}
+              compact
+              onPreview={setPreviewUrl}
+            />
           </div>
         </header>
       )}
 
-      {/* ── Guide khi chưa detect ─────────────────────────────────────── */}
+      {/* Guide khi chưa detect */}
       {stage === 'ready' && !faceOk && (
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center z-10 pointer-events-none">
-          <div className="backdrop-blur-md bg-sky-950/60 border border-sky-700/30 rounded-2xl px-6 py-3 text-center">
-            <p className="text-white/80 text-sm font-medium">Đưa khuôn mặt vào giữa màn hình</p>
-            <p className="text-sky-400/70 text-xs mt-1">Cần ánh sáng đủ · Nhìn thẳng camera</p>
+        <div className="absolute inset-x-0 top-[38%] flex justify-center z-10 pointer-events-none">
+          <div className="bg-black/35 backdrop-blur-sm rounded-2xl px-5 py-2.5 text-center">
+            <p className="text-white/80 text-sm">Đưa khuôn mặt vào giữa màn hình</p>
+            <p className="text-white/40 text-xs mt-0.5">Cần ánh sáng đủ · Nhìn thẳng camera</p>
           </div>
         </div>
       )}
 
-      {/* ── Bottom panel — tất cả controls ────────────────────────────── */}
+      {/* Floating color swatches — above white card */}
       {stage === 'ready' && (
-        <div className="absolute bottom-0 left-0 right-0 z-10 backdrop-blur-xl bg-sky-950/85 border-t border-sky-700/40">
-          <div className="max-w-xl mx-auto px-4 pt-3 pb-5 flex flex-col gap-2.5">
+        <div className="absolute left-0 right-0 z-10 flex flex-col items-center gap-1.5" style={{ bottom: '122px' }}>
+          <p className="text-white/50 text-[10px] tracking-[0.25em] uppercase drop-shadow">
+            {allShades.length} tông màu
+          </p>
+          <ColorPalette
+            onColorSelect={handleColorSelect}
+            onProductSelect={handleProductSelect}
+            onShadesLoaded={setAllShades}
+            selectedId={selectedId}
+          />
+        </div>
+      )}
 
-            {/* Row 1: Tên màu + nút capture/share */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                {selectedProduct ? (
-                  <>
-                    <div
-                      className="w-5 h-5 rounded-full flex-shrink-0 border-2 border-white/30 shadow-sm"
-                      style={{ backgroundColor: selectedProduct.hex }}
-                    />
-                    <span className="text-white text-sm font-bold truncate">
-                      {selectedProduct.name}
+      {/* White product card */}
+      {stage === 'ready' && (
+        <div className="absolute bottom-0 left-0 right-0 z-10 bg-white rounded-t-[24px] shadow-[0_-8px_40px_rgba(0,0,0,0.18)]">
+          <div className="max-w-xl mx-auto px-5 pt-3 pb-5">
+            {selectedProduct ? (
+              <>
+                <p className="text-[9px] text-lemon-500 tracking-[0.35em] uppercase font-semibold mb-1.5">
+                  Mirror Mirror Water Tint
+                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-black font-bold text-sm tracking-widest uppercase leading-tight min-w-0 truncate">
+                    {selectedProduct.name.replace(/^\d+\.\s*/, '')}
+                    <span className="text-black/40 font-normal normal-case tracking-normal">
+                      {' '}· {selectedProduct.price.toLocaleString('vi-VN')}đ
                     </span>
-                    <span className="text-white/40 text-xs flex-shrink-0">· 169.000đ</span>
-                  </>
-                ) : (
-                  <span className="text-white/30 text-sm italic">Chọn màu để thử →</span>
-                )}
+                  </p>
+                  <button
+                    onClick={() => window.open(storeUrl, '_blank', 'noopener,noreferrer')}
+                    className="flex items-center gap-1 bg-lemon-500 text-black text-[10px] font-bold px-4 py-2 rounded-full tracking-[0.15em] uppercase flex-shrink-0 active:scale-95 transition-transform"
+                  >
+                    Xem thêm
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+                <button
+                  onClick={() => window.open(storeUrl, '_blank', 'noopener,noreferrer')}
+                  className="mt-1.5 text-black/30 text-[11px] hover:text-black/50 transition-colors"
+                >
+                  Xem thêm chi tiết ↓
+                </button>
+              </>
+            ) : (
+              <div className="text-center py-0.5">
+                <p className="text-[9px] text-lemon-500 tracking-[0.35em] uppercase font-semibold mb-1">
+                  Mirror Mirror Water Tint
+                </p>
+                <p className="text-black/40 text-sm">Chọn màu để thử →</p>
               </div>
-
-              {/* Capture + share compact */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <CaptureButton
-                  canvasRef={canvasRef}
-                  productId={selectedProduct?.id ?? null}
-                  compact
-                  onPreview={setPreviewUrl}
-                />
-                <ShareButton
-                  canvasRef={canvasRef}
-                  productName={selectedProduct?.name ?? 'Lemonade'}
-                  productId={selectedProduct?.id ?? null}
-                  compact
-                  onPreview={setPreviewUrl}
-                />
-              </div>
-            </div>
-
-            {/* Row 2: Palette 1 hàng scroll ngang */}
-            <ColorPalette
-              onColorSelect={handleColorSelect}
-              onProductSelect={handleProductSelect}
-              onShadesLoaded={setAllShades}
-              selectedId={selectedId}
-            />
-
-            {/* Row 3: Skin recommendation (collapsed by default) */}
-            {skinAnalysis && allShades.length > 0 && (
-              <ColorRecommendation
-                analysis={skinAnalysis}
-                allShades={allShades}
-                onColorSelect={handleColorSelect}
-                onProductSelect={handleProductSelect}
-                selectedId={selectedId}
-              />
             )}
-
-            {/* Add to cart */}
-            <AddToCartButton product={selectedProduct} />
           </div>
         </div>
       )}

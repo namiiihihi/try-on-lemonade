@@ -37,13 +37,16 @@ const FALLBACK_SHADES: Product[] = [
   { id: 'v3-16', name: '16. Left No Crumbs',       hex: '#D87268', opacity: 0.68, finish: 'glossy', collection: 'Mirror Mirror Water Tint', price: 169000, image_url: `${IMG3}_16_8d2e53564e704181850bdf94e77a1f80.jpg`, store_url: url(1140650066) },
 ]
 
-export default function ColorPalette({ onColorSelect, onProductSelect, onShadesLoaded, selectedId: controlledId }: ColorPaletteProps) {
-  const [shades, setShades]       = useState<Product[]>(FALLBACK_SHADES)
-  const [internalId, setInternalId] = useState<string | null>(null)
-  const [open, setOpen]           = useState(false)
+const DOTS_PER_PAGE = 6
 
-  const activeId = controlledId !== undefined ? controlledId : internalId
-  const active   = shades.find(s => s.id === activeId)
+export default function ColorPalette({ onColorSelect, onProductSelect, onShadesLoaded, selectedId: controlledId }: ColorPaletteProps) {
+  const [shades, setShades]     = useState<Product[]>(FALLBACK_SHADES)
+  const [internalId, setInternalId] = useState<string | null>(null)
+  const [page, setPage]         = useState(0)
+
+  const activeId    = controlledId !== undefined ? controlledId : internalId
+  const totalPages  = Math.ceil(shades.length / DOTS_PER_PAGE)
+  const visible     = shades.slice(page * DOTS_PER_PAGE, (page + 1) * DOTS_PER_PAGE)
 
   useEffect(() => {
     onShadesLoaded?.(FALLBACK_SHADES)
@@ -59,8 +62,9 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
   }, [onShadesLoaded])
 
   function handleSelect(product: Product) {
+    const idx = shades.findIndex(s => s.id === product.id)
     setInternalId(product.id)
-    setOpen(false)
+    setPage(Math.floor(idx / DOTS_PER_PAGE))
     onColorSelect({ hex: product.hex, opacity: product.opacity, finish: product.finish })
     onProductSelect?.(product)
     void trackEvent({
@@ -71,72 +75,49 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
   }
 
   return (
-    <div>
-      {/* Collapsed toggle bar — always visible */}
+    <div className="flex items-center gap-2">
+      {/* Prev arrow */}
       <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 w-full py-1 focus:outline-none"
-        aria-expanded={open}
+        onClick={() => setPage(p => Math.max(0, p - 1))}
+        aria-label="Tông màu trước"
+        className={`w-8 h-8 flex items-center justify-center text-white text-xl drop-shadow transition-opacity ${page === 0 ? 'opacity-0 pointer-events-none' : 'opacity-70 hover:opacity-100'}`}
       >
-        {/* Preview dots: active shade first, then first 7 others */}
-        <div className="flex items-center gap-1.5">
-          {active && (
-            <div
-              className="w-5 h-5 rounded-full border-2 border-white shadow-sm flex-shrink-0"
-              style={{ backgroundColor: active.hex }}
-            />
-          )}
-          {shades
-            .filter(s => s.id !== activeId)
-            .slice(0, active ? 7 : 8)
-            .map(s => (
-              <div
-                key={s.id}
-                className="w-3.5 h-3.5 rounded-full border border-white/30 flex-shrink-0"
-                style={{ backgroundColor: s.hex }}
-              />
-            ))}
-          <span className="text-white/35 text-[10px] ml-0.5">+{Math.max(0, shades.length - 8)}</span>
-        </div>
-        <span className="ml-auto text-white/40 text-[10px] tracking-wide flex items-center gap-1">
-          Chọn màu
-          <svg
-            className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
-            fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </span>
+        ‹
       </button>
 
-      {/* Expanded palette */}
-      {open && (
-        <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1 pt-2 border-t border-white/10 mt-1">
-          {shades.map((shade) => {
-            const isActive  = activeId === shade.id
-            const shortName = shade.name.replace(/^\d+\.\s*/, '')
-            return (
-              <div key={shade.id} className="flex flex-col items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={() => handleSelect(shade)}
-                  title={shade.name}
-                  aria-label={shade.name}
-                  aria-pressed={isActive}
-                  className="shade-swatch"
-                  style={{ backgroundColor: shade.hex }}
-                />
-                <span
-                  className={`text-[8px] leading-tight text-center w-12 line-clamp-2 select-none pointer-events-none transition-colors ${
-                    isActive ? 'text-lemon-400 font-semibold' : 'text-white/50'
-                  }`}
-                >
-                  {shortName}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      {/* Dots */}
+      <div className="flex items-center gap-3">
+        {visible.map(shade => {
+          const isActive = activeId === shade.id
+          return (
+            <button
+              key={shade.id}
+              onClick={() => handleSelect(shade)}
+              title={shade.name}
+              aria-label={shade.name}
+              aria-pressed={isActive}
+              className="rounded-full transition-all duration-150 flex-shrink-0 active:scale-90"
+              style={{
+                width: isActive ? 48 : 42,
+                height: isActive ? 48 : 42,
+                backgroundColor: shade.hex,
+                outline: isActive ? '2.5px solid white' : '2.5px solid transparent',
+                outlineOffset: '3px',
+                boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 6px rgba(0,0,0,0.3)',
+              }}
+            />
+          )
+        })}
+      </div>
+
+      {/* Next arrow */}
+      <button
+        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+        aria-label="Tông màu tiếp theo"
+        className={`w-8 h-8 flex items-center justify-center text-white text-xl drop-shadow transition-opacity ${page >= totalPages - 1 ? 'opacity-0 pointer-events-none' : 'opacity-70 hover:opacity-100'}`}
+      >
+        ›
+      </button>
     </div>
   )
 }
