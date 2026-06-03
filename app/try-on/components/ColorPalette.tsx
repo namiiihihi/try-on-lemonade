@@ -51,9 +51,12 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
   useEffect(() => {
     onShadesLoaded?.(FALLBACK_SHADES)
     async function fetchShades() {
-      const { data, error } = await supabase.from('products').select('*').order('name')
+      const { data, error } = await supabase.from('products').select('*')
       if (!error && data && data.length > 0) {
-        const loaded = data as Product[]
+        const loaded = (data as Product[]).sort((a, b) => {
+          const n = (s: string) => parseInt(s.match(/^\d+/)?.[0] ?? '999')
+          return n(a.name) - n(b.name)
+        })
         setShades(loaded)
         onShadesLoaded?.(loaded)
       }
