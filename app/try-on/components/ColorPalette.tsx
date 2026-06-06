@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Product } from '@/lib/supabase'
 import type { LipColor } from '@/lib/lipRenderer'
-import { trackEvent, getOrCreateSessionId } from '@/lib/analytics'
+import { trackEvent, logEvent, getOrCreateSessionId } from '@/lib/analytics'
 import { LIP_COLORS } from '@/lib/lip_colors'
 
 type ColorPaletteProps = {
@@ -19,9 +19,11 @@ const FALLBACK_SHADES = LIP_COLORS
 const DOTS_PER_PAGE = 6
 
 export default function ColorPalette({ onColorSelect, onProductSelect, onShadesLoaded, selectedId: controlledId }: ColorPaletteProps) {
-  const [shades, setShades]         = useState<Product[]>(FALLBACK_SHADES)
-  const [internalId, setInternalId] = useState<string | null>(null)
-  const [page, setPage]             = useState(0)
+  const [shades, setShades]           = useState<Product[]>(FALLBACK_SHADES)
+  const [internalId, setInternalId]   = useState<string | null>(null)
+  const [page, setPage]               = useState(0)
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null)
+  const hoverTimer                    = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const activeId   = controlledId !== undefined ? controlledId : internalId
   const totalPages = Math.ceil(shades.length / DOTS_PER_PAGE)
@@ -49,6 +51,7 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
     setPage(Math.floor(idx / DOTS_PER_PAGE))
     onColorSelect({ hex: product.hex, opacity: product.opacity, finish: product.finish })
     onProductSelect?.(product)
+    logEvent('color_selected', { colorId: product.id, colorName: product.name })
     void trackEvent({
       session_id: getOrCreateSessionId(),
       product_id: product.id,
@@ -57,6 +60,12 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
   }
 
   return (
+    <div className="flex flex-col items-center gap-1.5">
+      {/* Tên màu đang hover */}
+      <p className="text-white/70 text-[11px] tracking-wide drop-shadow h-4 transition-opacity duration-150" style={{ opacity: hoveredColor ? 1 : 0 }}>
+        {hoveredColor ?? ''}
+      </p>
+
     <div className="flex items-center gap-2">
       {/* Prev arrow */}
       <button
@@ -75,6 +84,13 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
             <button
               key={shade.id}
               onClick={() => handleSelect(shade)}
+              onMouseEnter={() => {
+                if (hoverTimer.current) clearTimeout(hoverTimer.current)
+                setHoveredColor(shade.name)
+              }}
+              onMouseLeave={() => {
+                hoverTimer.current = setTimeout(() => setHoveredColor(null), 600)
+              }}
               title={shade.name}
               aria-label={shade.name}
               aria-pressed={isActive}
@@ -100,6 +116,7 @@ export default function ColorPalette({ onColorSelect, onProductSelect, onShadesL
       >
         ›
       </button>
+    </div>
     </div>
   )
 }

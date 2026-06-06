@@ -12,7 +12,7 @@
 Creator nhìn thẳng vào camera, môi chưa son, biểu cảm ngạc nhiên + giơ điện thoại lên.
 
 **Text overlay:**
-> "Thử 12 màu son mà không cần ra khỏi giường???"
+> "Thử 16 màu son mà không cần ra khỏi giường???"
 
 **Voiceover / Audio:**
 > "Khoan — bạn đang thử màu son kiểu gì vậy?"
@@ -88,5 +88,5 @@ Cut sang shot creator cầm chai Mirror Mirror Water Tint thật — cười tư
 
 ## ALTERNATE HOOK OPTIONS (A/B test)
 
-- **Hook B:** "POV: bạn thử hết 12 màu son trong 1 phút — không cần ra khỏi nhà"
+- **Hook B:** "POV: bạn thử hết 16 màu son trong 1 phút — không cần ra khỏi nhà"
 - **Hook C:** "Mình đã mua nhầm màu son QUÁ NHIỀU LẦN rồi — đến khi có cái này..."

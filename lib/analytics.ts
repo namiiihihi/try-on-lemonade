@@ -36,3 +36,7 @@ export async function trackEvent(payload: EventPayload): Promise<void> {
     // Silent fail — analytics must never break the user experience
   }
 }
+
+export function logEvent(event: string, data?: Record<string, unknown>): void {
+  console.log('[Lemonade Analytics]', event, data ?? '')
+}

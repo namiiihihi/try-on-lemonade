@@ -18,7 +18,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: 'Mirror Mirror Water Tint — Lemonade Cosmetics',
-  description: 'Thử 12 màu son ảo ngay trên gương mặt bạn — thời gian thực, không cần đến cửa hàng.',
+  description: 'Thử 16 màu son ảo ngay trên gương mặt bạn — thời gian thực, không cần đến cửa hàng.',
   openGraph: {
     title: 'Mirror Mirror Water Tint | Lemonade Try-On',
     description: 'AI Lip Try-On cho Lemonade Cosmetics',

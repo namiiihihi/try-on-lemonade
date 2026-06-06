@@ -58,11 +58,13 @@ module.exports = {
         'fade-in':    'fadeIn 0.4s ease-out',
         'slide-up':   'slideUp 0.5s cubic-bezier(0.16,1,0.3,1)',
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+        'toast-in':   'toastIn 0.2s ease',
       },
       keyframes: {
         fadeIn:    { from: { opacity: '0' }, to: { opacity: '1' } },
         slideUp:   { from: { opacity: '0', transform: 'translateY(16px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         pulseGlow: { '0%,100%': { boxShadow: '0 0 12px rgba(255,214,0,0.3)' }, '50%': { boxShadow: '0 0 28px rgba(255,214,0,0.6)' } },
+        toastIn:   { from: { opacity: '0', transform: 'translateX(-50%) translateY(8px)' }, to: { opacity: '1', transform: 'translateX(-50%) translateY(0)' } },
       },
     },
   },

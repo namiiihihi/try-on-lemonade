@@ -4,7 +4,7 @@
 Hệ thống **Virtual Lip Try-On** thời gian thực cho thương hiệu mỹ phẩm Việt Nam **Lemonade Cosmetics**.
 Khách hàng bật camera → AI phát hiện môi → render màu son ảo lên môi ngay lập tức, không cần đến store.
 
-Sản phẩm chính: **Mirror Mirror Water Tint** (169.000đ, 12 màu, finish glossy).
+Sản phẩm chính: **Mirror Mirror Water Tint** (169.000đ, 16 màu, finish glossy).
 
 ---
 
@@ -98,7 +98,7 @@ test: add Playwright cross-browser suite
 ## Tính năng cốt lõi (theo thứ tự ưu tiên)
 
 1. **Real-time AR overlay** — camera → FaceMesh → render màu son lên môi
-2. **Color palette** — 12 màu Water Tint, click để đổi màu ngay lập tức
+2. **Color palette** — 16 màu Water Tint, click để đổi màu ngay lập tức
 3. **Side-by-side compare** — so sánh 2–3 màu cùng lúc
 4. **Capture & share** — chụp ảnh kết quả, share lên MXH
 5. **Add to cart** — one-click mua màu đang thử

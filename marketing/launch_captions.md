@@ -21,7 +21,7 @@
 
 > Bật camera lên → AI nhận ra môi mình → màu son hiện ra ngay. Mượt vậy thôi. 🍋
 >
-> Giờ thì thử hết 12 màu Mirror Mirror Water Tint mà không cần đến store, không cần mua thử rồi hối hận. 3 giây là biết màu nào hợp mình rồi.
+> Giờ thì thử hết 16 màu Mirror Mirror Water Tint mà không cần đến store, không cần mua thử rồi hối hận. 3 giây là biết màu nào hợp mình rồi.
 >
 > Thử ngay (miễn phí!) tại lemonade.vn/try-on
 >
@@ -63,7 +63,7 @@
 
 > Tuần này Lemonade ra mắt tính năng thử son ảo — và mình thấy nhiều bạn vẫn chưa thử! 👀
 >
-> Nhắc lại lần cuối: vào lemonade.vn/try-on, thử 12 màu Mirror Mirror Water Tint ngay trên môi mình, miễn phí, không cần tải app, không cần đến store. Màu nào ưng thì chốt luôn tại đó luôn.
+> Nhắc lại lần cuối: vào lemonade.vn/try-on, thử 16 màu Mirror Mirror Water Tint ngay trên môi mình, miễn phí, không cần tải app, không cần đến store. Màu nào ưng thì chốt luôn tại đó luôn.
 >
 > 169.000đ — glossy chuẩn, bền màu cả ngày. Hết do dự đi nha!
 >

@@ -1,34 +1,87 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { RefObject } from 'react'
+import { logEvent } from '@/lib/analytics'
 
 type CaptureButtonProps = {
-  canvasRef:  RefObject<HTMLCanvasElement | null>
-  productId:  string | null
-  compact?:   boolean
-  onPreview:  (dataUrl: string) => void
+  canvasRef:   RefObject<HTMLCanvasElement | null>
+  productId:   string | null
+  productName?: string | null
+  compact?:    boolean
+  onPreview:   (dataUrl: string) => void
 }
 
-export default function CaptureButton({ canvasRef, compact, onPreview }: CaptureButtonProps) {
+export default function CaptureButton({ canvasRef, productName, compact, onPreview }: CaptureButtonProps) {
+  const [toast, setToast] = useState(false)
+
   const handleCapture = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    onPreview(canvas.toDataURL('image/png'))
-  }, [canvasRef, onPreview])
+    const src = canvasRef.current
+    if (!src) return
+
+    // Copy canvas + add watermark
+    const out = document.createElement('canvas')
+    out.width  = src.width
+    out.height = src.height
+    const ctx  = out.getContext('2d')!
+    ctx.drawImage(src, 0, 0)
+
+    // Watermark góc dưới phải
+    const label = 'Lemonade Try-On'
+    const padX = 12, padY = 10, boxH = 28, fontSize = 12
+    ctx.font = `bold ${fontSize}px sans-serif`
+    const textW = ctx.measureText(label).width
+    const boxW  = textW + padX * 2
+    const bx    = out.width  - boxW - 10
+    const by    = out.height - boxH - 10
+    ctx.fillStyle = 'rgba(255,255,255,0.82)'
+    ctx.beginPath()
+    ctx.roundRect(bx, by, boxW, boxH, 6)
+    ctx.fill()
+    ctx.fillStyle = '#C0392B'
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(label, bx + padX, by + boxH / 2)
+
+    const dataUrl = out.toDataURL('image/png')
+
+    logEvent('photo_captured', { shadeName: productName ?? undefined })
+
+    // Download
+    const link      = document.createElement('a')
+    link.download   = `lemonade-tryon-${(productName ?? 'shade').replace(/\s+/g, '-').toLowerCase()}.png`
+    link.href       = dataUrl
+    link.click()
+
+    // Preview modal
+    onPreview(dataUrl)
+
+    // Toast
+    setToast(true)
+    setTimeout(() => setToast(false), 2500)
+  }, [canvasRef, productName, onPreview])
 
   return (
-    <button
-      onClick={handleCapture}
-      title="Chụp ảnh"
-      aria-label="Chụp ảnh"
-      className={`rounded-full backdrop-blur-md bg-white/10 border-2 border-white/30 hover:border-lemon-500 hover:bg-lemon-500/20 active:scale-90 transition-all flex items-center justify-center ${compact ? 'w-9 h-9' : 'w-14 h-14'}`}
-    >
-      <svg className={`text-white ${compact ? 'w-4 h-4' : 'w-6 h-6'}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round"
-          d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-      </svg>
-    </button>
+    <>
+      <button
+        onClick={handleCapture}
+        aria-label="Chụp ảnh kết quả try-on"
+        className={
+          compact
+            ? 'w-9 h-9 rounded-full backdrop-blur-md bg-white/10 border-2 border-white/30 hover:border-lemon-500 hover:bg-lemon-500/20 active:scale-90 transition-all flex items-center justify-center'
+            : 'flex items-center gap-2 px-6 py-3 bg-brand-rose text-white border-none rounded-full text-[15px] font-semibold cursor-pointer mt-4 transition-opacity duration-200 hover:opacity-[0.88] active:scale-[0.97]'
+        }
+      >
+        <span>📸</span>
+        {!compact && <span>Chụp ảnh</span>}
+      </button>
+
+      {/* Toast */}
+      {toast && (
+        <div className="absolute bottom-6 left-1/2 bg-[#1a1a1a] text-white px-5 py-2.5 rounded-full text-sm whitespace-nowrap z-50 animate-toast-in">
+          Đã lưu ảnh! Kiểm tra thư mục Downloads 🍋
+        </div>
+      )}
+    </>
   )
 }

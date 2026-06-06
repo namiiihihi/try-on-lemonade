@@ -9,13 +9,14 @@ import { renderLipColor, computeCoverParams, mirrorLandmarks } from '@/lib/lipRe
 import type { LipColor } from '@/lib/lipRenderer'
 import type { Product } from '@/lib/supabase'
 
+import { logEvent } from '@/lib/analytics'
 import ColorPalette from './ColorPalette'
 import CaptureButton from './CaptureButton'
 import ShareButton from './ShareButton'
-import UploadFallback from './UploadFallback'
+import CameraError from './CameraError'
 import PhotoPreviewModal from './PhotoPreviewModal'
 
-const CAMERA_ERR_KEYS = ['camera', 'permission', 'denied', 'notallowed', 'notfound']
+const CAMERA_ERR_KEYS = ['camera', 'permission', 'denied', 'notallowed', 'notfound', 'notreadable', 'overconstrained']
 type Stage = 'camera' | 'model' | 'ready' | 'error'
 
 export default function FaceDetector() {
@@ -31,6 +32,7 @@ export default function FaceDetector() {
   const [stage, setStage]             = useState<Stage>('camera')
   const [stageMsg, setStageMsg]       = useState('Đang khởi động camera...')
   const [error, setError]             = useState<string | null>(null)
+  const [cameraError, setCameraError] = useState(false)
   const [faceOk, setFaceOk]           = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedId, setSelectedId]   = useState<string | null>(null)
@@ -87,6 +89,7 @@ export default function FaceDetector() {
           video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
           audio: false,
         })
+        logEvent('tryon_started')
         if (!videoRef.current || !running) { stream.getTracks().forEach(t => t.stop()); return }
         videoRef.current.srcObject = stream
         await videoRef.current.play()
@@ -138,8 +141,12 @@ export default function FaceDetector() {
 
       } catch (err) {
         if (!running) return
-        setError(err instanceof Error ? err.message : 'Lỗi không xác định')
+        const msg = err instanceof Error ? err.message : 'Lỗi không xác định'
+        setError(msg)
         setStage('error')
+        if (CAMERA_ERR_KEYS.some(k => msg.toLowerCase().includes(k))) {
+          setCameraError(true)
+        }
       }
     }
 
@@ -152,9 +159,7 @@ export default function FaceDetector() {
     }
   }, [handleResults])
 
-  if (stage === 'error' && error && CAMERA_ERR_KEYS.some(k => error.toLowerCase().includes(k))) {
-    return <UploadFallback />
-  }
+  if (cameraError) return <CameraError />
 
   const isLoading = stage === 'camera' || stage === 'model'
 
@@ -205,6 +210,7 @@ export default function FaceDetector() {
             <CaptureButton
               canvasRef={canvasRef}
               productId={selectedProduct?.id ?? null}
+              productName={selectedProduct?.name ?? null}
               compact
               onPreview={setPreviewUrl}
             />
@@ -261,7 +267,10 @@ export default function FaceDetector() {
                     </span>
                   </p>
                   <button
-                    onClick={() => window.open(storeUrl, '_blank', 'noopener,noreferrer')}
+                    onClick={() => {
+                      logEvent('add_to_cart_intent', { colorId: selectedProduct?.id, colorName: selectedProduct?.name })
+                      window.open(storeUrl, '_blank', 'noopener,noreferrer')
+                    }}
                     className="flex items-center gap-1 bg-lemon-500 text-black text-[10px] font-bold px-4 py-2 rounded-full tracking-[0.15em] uppercase flex-shrink-0 active:scale-95 transition-transform"
                   >
                     Xem thêm
